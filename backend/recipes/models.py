@@ -1,5 +1,6 @@
-from django.contrib.auth.models import User
 from django.db import models
+
+from users.models import User
 
 
 class Tag(models.Model):
@@ -8,7 +9,7 @@ class Tag(models.Model):
 
     Поля:
     - name: название тега.
-    - color_hex: цветовой HEX-код. Например, "#49B64E".
+    - color: цветовой HEX-код. Например, "#49B64E".
     - slug: уникальное сокращение для URL.
 
     """
@@ -16,9 +17,7 @@ class Tag(models.Model):
     name = models.CharField(
         max_length=255, unique=True, verbose_name="Название тега"
     )
-    color_hex = models.CharField(
-        max_length=7, verbose_name="Цветовой HEX-код"
-    )
+    color = models.CharField(max_length=7, verbose_name="Цветовой HEX-код")
     slug = models.SlugField(unique=True, verbose_name="Slug")
 
     class Meta:
@@ -35,16 +34,16 @@ class Ingredient(models.Model):
 
     Поля:
     - name: название ингредиента.
-    - quantity: количество ингредиента.
-    - unit: единицы измерения.
+    - measurement_unit: единицы измерения.
 
     """
 
     name = models.CharField(
         max_length=255, verbose_name="Название ингредиента"
     )
-    quantity = models.PositiveIntegerField("Количество")
-    unit = models.CharField(max_length=50, verbose_name="Единицы измерения")
+    measurement_unit = models.CharField(
+        max_length=50, verbose_name="Единицы измерения"
+    )
 
     class Meta:
         verbose_name = "Ингредиент"
@@ -60,13 +59,13 @@ class Recipe(models.Model):
 
     Поля:
     - author: автор публикации (связь с моделью User).
-    - title: название рецепта.
+    - name: название рецепта.
     - image: изображение рецепта.
-    - description: текстовое описание.
-    - ingredients: ингредиенты блюда по рецепту (связь с моделью Ingredient
+    - text: текстовое описание.
+    - ingredients: ингредиенты блюда по рецепту (связь с моделью Ingredient/
       через промежуточную модель RecipeIngredient).
     - tags: теги рецепта (связь с моделью Tag).
-    - preparation_time: время приготовления в минутах.
+    - cooking_time: время приготовления в минутах.
 
     """
 
@@ -76,11 +75,11 @@ class Recipe(models.Model):
         related_name="recipes",
         verbose_name="Автор публикации",
     )
-    title = models.CharField(max_length=255, verbose_name="Название рецепта")
+    name = models.CharField(max_length=255, verbose_name="Название рецепта")
     image = models.ImageField(
         upload_to="recipes/", verbose_name="Изображение рецепта"
     )
-    description = models.TextField(verbose_name="Текстовое описание")
+    text = models.TextField(verbose_name="Текстовое описание")
     ingredients = models.ManyToManyField(
         Ingredient,
         through="RecipeIngredient",
@@ -90,7 +89,7 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(
         Tag, related_name="recipes", verbose_name="Теги"
     )
-    preparation_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveIntegerField(
         verbose_name="Время приготовления (минуты)"
     )
 
@@ -109,8 +108,7 @@ class RecipeIngredient(models.Model):
     Поля:
     - recipe: рецепт (связь с моделью Recipe).
     - ingredient: ингредиент (связь с моделью Ingredient).
-    - quantity: количество ингредиента.
-    - unit: единицы измерения.
+    - amount: количество ингредиента.
 
     """
 
@@ -126,8 +124,7 @@ class RecipeIngredient(models.Model):
         related_name="recipe_ingredients",
         verbose_name="Ингредиент",
     )
-    quantity = models.PositiveIntegerField("Количество")
-    unit = models.CharField(max_length=50, verbose_name="Единицы измерения")
+    amount = models.PositiveIntegerField("Количество")
 
     class Meta:
         verbose_name = "Ингредиент рецепта"

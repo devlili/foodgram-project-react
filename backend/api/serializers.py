@@ -1,109 +1,109 @@
-# from django.db.models import Avg
-from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
+# # from django.db.models import Avg
+# from rest_framework import serializers
+# from rest_framework.relations import SlugRelatedField
 
-from reviews.models import Category, Comment, Genre, Review, Title
-
-
-class GenreSerializer(serializers.ModelSerializer):
-    """Сериализатор для объектов модели Genre."""
-
-    class Meta:
-        model = Genre
-        fields = ("name", "slug")
+# from reviews.models import Category, Comment, Genre, Review, Title
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    """Сериализатор для объектов модели Category."""
+# class GenreSerializer(serializers.ModelSerializer):
+#     """Сериализатор для объектов модели Genre."""
 
-    class Meta:
-        model = Category
-        fields = ("name", "slug")
-
-
-class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для объектов модели Title на чтение."""
-
-    rating = serializers.IntegerField(read_only=True)
-    # rating = serializers.SerializerMethodField()
-    genre = GenreSerializer(read_only=True, many=True)
-    category = CategorySerializer(read_only=True)
-
-    class Meta:
-        model = Title
-        fields = (
-            "id",
-            "name",
-            "year",
-            "rating",
-            "description",
-            "genre",
-            "category",
-        )
-
-    # def get_rating(self, obj):
-    #     rating = obj.reviews.aggregate(rating=Avg("score")).get("rating")
-    #     if not rating:
-    #         return rating
-    #     return round(rating)
+#     class Meta:
+#         model = Genre
+#         fields = ("name", "slug")
 
 
-class TitleCreateSerializer(serializers.ModelSerializer):
-    """Сериализатор для объектов модели Title на добавление."""
+# class CategorySerializer(serializers.ModelSerializer):
+#     """Сериализатор для объектов модели Category."""
 
-    genre = serializers.SlugRelatedField(
-        many=True, slug_field="slug", queryset=Genre.objects.all()
-    )
-    category = serializers.SlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all()
-    )
-
-    class Meta:
-        model = Title
-        fields = (
-            "id",
-            "name",
-            "year",
-            "description",
-            "genre",
-            "category",
-        )
+#     class Meta:
+#         model = Category
+#         fields = ("name", "slug")
 
 
-class CommentSerializer(serializers.ModelSerializer):
-    """Сериализатор для объектов модели Comment."""
+# class TitleReadSerializer(serializers.ModelSerializer):
+#     """Сериализатор для объектов модели Title на чтение."""
 
-    author = SlugRelatedField(
-        read_only=True,
-        slug_field="username",
-        default=serializers.CurrentUserDefault(),
-    )
+#     rating = serializers.IntegerField(read_only=True)
+#     # rating = serializers.SerializerMethodField()
+#     genre = GenreSerializer(read_only=True, many=True)
+#     category = CategorySerializer(read_only=True)
 
-    class Meta:
-        fields = ("id", "text", "author", "pub_date")
-        model = Comment
+#     class Meta:
+#         model = Title
+#         fields = (
+#             "id",
+#             "name",
+#             "year",
+#             "rating",
+#             "description",
+#             "genre",
+#             "category",
+#         )
+
+#     # def get_rating(self, obj):
+#     #     rating = obj.reviews.aggregate(rating=Avg("score")).get("rating")
+#     #     if not rating:
+#     #         return rating
+#     #     return round(rating)
 
 
-class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для объектов модели Review."""
+# class TitleCreateSerializer(serializers.ModelSerializer):
+#     """Сериализатор для объектов модели Title на добавление."""
 
-    author = SlugRelatedField(
-        read_only=True,
-        slug_field="username",
-        default=serializers.CurrentUserDefault(),
-    )
+#     genre = serializers.SlugRelatedField(
+#         many=True, slug_field="slug", queryset=Genre.objects.all()
+#     )
+#     category = serializers.SlugRelatedField(
+#         slug_field="slug", queryset=Category.objects.all()
+#     )
 
-    class Meta:
-        fields = ("id", "text", "author", "score", "pub_date")
-        model = Review
+#     class Meta:
+#         model = Title
+#         fields = (
+#             "id",
+#             "name",
+#             "year",
+#             "description",
+#             "genre",
+#             "category",
+#         )
 
-    def validate(self, data):
-        if self.context.get("request").method != "POST":
-            return data
-        title = self.context.get("view").kwargs.get("title_id")
-        author = self.context.get("request").user
-        if Review.objects.filter(author=author, title=title).exists():
-            raise serializers.ValidationError(
-                "Вы уже написали отзыв к этому произведению."
-            )
-        return data
+
+# class CommentSerializer(serializers.ModelSerializer):
+#     """Сериализатор для объектов модели Comment."""
+
+#     author = SlugRelatedField(
+#         read_only=True,
+#         slug_field="username",
+#         default=serializers.CurrentUserDefault(),
+#     )
+
+#     class Meta:
+#         fields = ("id", "text", "author", "pub_date")
+#         model = Comment
+
+
+# class ReviewSerializer(serializers.ModelSerializer):
+#     """Сериализатор для объектов модели Review."""
+
+#     author = SlugRelatedField(
+#         read_only=True,
+#         slug_field="username",
+#         default=serializers.CurrentUserDefault(),
+#     )
+
+#     class Meta:
+#         fields = ("id", "text", "author", "score", "pub_date")
+#         model = Review
+
+#     def validate(self, data):
+#         if self.context.get("request").method != "POST":
+#             return data
+#         title = self.context.get("view").kwargs.get("title_id")
+#         author = self.context.get("request").user
+#         if Review.objects.filter(author=author, title=title).exists():
+#             raise serializers.ValidationError(
+#                 "Вы уже написали отзыв к этому произведению."
+#             )
+#         return data

@@ -1,5 +1,4 @@
 from django.db import models
-
 from users.models import User
 
 
@@ -15,10 +14,16 @@ class Tag(models.Model):
     """
 
     name = models.CharField(
-        max_length=255, unique=True, verbose_name="Название тега"
+        max_length=200,
+        db_index=True,
+        verbose_name="Название тега",
     )
     color = models.CharField(max_length=7, verbose_name="Цветовой HEX-код")
-    slug = models.SlugField(unique=True, verbose_name="Slug")
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        verbose_name="Уникальный слаг",
+    )
 
     class Meta:
         verbose_name = "Тег"
@@ -39,10 +44,13 @@ class Ingredient(models.Model):
     """
 
     name = models.CharField(
-        max_length=255, verbose_name="Название ингредиента"
+        max_length=200,
+        db_index=True,
+        verbose_name="Название ингредиента",
     )
     measurement_unit = models.CharField(
-        max_length=50, verbose_name="Единицы измерения"
+        max_length=200,
+        verbose_name="Единицы измерения",
     )
 
     class Meta:
@@ -62,7 +70,7 @@ class Recipe(models.Model):
     - name: название рецепта.
     - image: изображение рецепта.
     - text: текстовое описание.
-    - ingredients: ингредиенты блюда по рецепту (связь с моделью Ingredient/
+    - ingredients: список ингредиентов (связь с моделью Ingredient/
       через промежуточную модель RecipeIngredient).
     - tags: теги рецепта (связь с моделью Tag).
     - cooking_time: время приготовления в минутах.
@@ -75,22 +83,28 @@ class Recipe(models.Model):
         related_name="recipes",
         verbose_name="Автор публикации",
     )
-    name = models.CharField(max_length=255, verbose_name="Название рецепта")
+    name = models.CharField(
+        max_length=200,
+        db_index=True,
+        verbose_name="Название рецепта",
+    )
     image = models.ImageField(
         upload_to="recipes/", verbose_name="Изображение рецепта"
     )
-    text = models.TextField(verbose_name="Текстовое описание")
+    text = models.TextField("Описание")
     ingredients = models.ManyToManyField(
         Ingredient,
         through="RecipeIngredient",
         related_name="recipes",
-        verbose_name="Ингредиенты блюда по рецепту",
+        verbose_name="Список ингредиентов",
     )
     tags = models.ManyToManyField(
-        Tag, related_name="recipes", verbose_name="Теги"
+        Tag,
+        related_name="recipes",
+        verbose_name="Теги",
     )
     cooking_time = models.PositiveIntegerField(
-        verbose_name="Время приготовления (минуты)"
+        "Время приготовления (в минутах)"
     )
 
     class Meta:

@@ -5,6 +5,7 @@ from .models import User
 
 
 class CustomUserAdmin(UserAdmin):
+    model = User
     list_filter = ("username", "email")
 
 

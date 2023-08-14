@@ -22,7 +22,24 @@ class RecipeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class RecipeFavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ("id", "name", "image", "cooking_time")
+
+
 class FavoriteSerializer(serializers.ModelSerializer):
+    recipe = RecipeFavoriteSerializer()
+
     class Meta:
         model = Favorite
-        fields = "__all__"
+        fields = ("recipe",)
+
+    def to_representation(self, instance):
+        recipe_data = instance.recipe
+        return {
+            "id": recipe_data.id,
+            "name": recipe_data.name,
+            "image": recipe_data.image.url,
+            "cooking_time": recipe_data.cooking_time,
+        }

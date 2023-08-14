@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from users.models import User
 
@@ -138,7 +139,10 @@ class RecipeIngredient(models.Model):
         related_name="recipe_ingredients",
         verbose_name="Ингредиент",
     )
-    amount = models.PositiveIntegerField("Количество")
+    amount = models.PositiveIntegerField(
+        "Количество",
+        validators=[MinValueValidator(1, message="Минимальное количество 1!")],
+    )
 
     class Meta:
         verbose_name = "Ингредиент рецепта"
@@ -146,3 +150,61 @@ class RecipeIngredient(models.Model):
 
     def __str__(self):
         return f"{self.ingredient.name} - {self.quantity} {self.unit}"
+
+
+class Favorite(models.Model):
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name="Рецепт",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="favorites",
+        verbose_name="Пользователь",
+    )
+
+    class Meta:
+        verbose_name = "Избранный рецепт"
+        verbose_name_plural = "Избранные рецепты"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "recipe"], name="unique_favorite_recipe"
+            )
+        ]
+
+    def __str__(self):
+        return f"Рецепт {self.recipe.name} в избранном у {self.user.username}"
+
+
+class ShoppingCart(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="shopping_cart",
+        verbose_name="Пользователь",
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="shopping_cart",
+        verbose_name="Рецепт",
+    )
+
+    class Meta:
+        verbose_name = "Список покупок"
+        verbose_name_plural = "Список покупок"
+
+        constraints = (
+            models.UniqueConstraint(
+                fields=("user", "recipe"), name="unique_shopping_cart_recipe"
+            ),
+        )
+
+    def __str__(self):
+        return (
+            f"Рецепт {self.recipe.name} в списке покупок у"
+            f" {self.user.username}"
+        )

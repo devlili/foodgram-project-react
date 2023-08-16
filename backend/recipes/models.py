@@ -29,6 +29,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = "Тег"
         verbose_name_plural = "Теги"
+        ordering = ["id"]
 
     def __str__(self):
         return self.name
@@ -57,6 +58,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент"
         verbose_name_plural = "Ингредиенты"
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
@@ -107,13 +109,17 @@ class Recipe(models.Model):
     cooking_time = models.PositiveIntegerField(
         "Время приготовления (в минутах)"
     )
+    pub_date = models.DateTimeField(
+        "Дата публикации", auto_now_add=True
+    )
 
     class Meta:
         verbose_name = "Рецепт"
         verbose_name_plural = "Рецепты"
+        ordering = ["-pub_date"]
 
     def __str__(self):
-        return self.title
+        return self.name
 
 
 class RecipeIngredient(models.Model):
@@ -147,9 +153,10 @@ class RecipeIngredient(models.Model):
     class Meta:
         verbose_name = "Ингредиент рецепта"
         verbose_name_plural = "Ингредиенты рецепта"
+        ordering = ["id"]
 
     def __str__(self):
-        return f"{self.ingredient.name} - {self.quantity} {self.unit}"
+        return f"{self.ingredient.name} - {self.amount}"
 
 
 class Favorite(models.Model):

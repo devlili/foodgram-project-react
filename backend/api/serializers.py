@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+from drf_extra_fields.fields import Base64ImageField
 
 from recipes.models import Favorite, Ingredient, Recipe, Tag
 
@@ -17,15 +18,19 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField()
+
     class Meta:
         model = Recipe
         fields = "__all__"
+        # read_only_fields = ('author',)
 
 
 class RecipeFavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = ("id", "name", "image", "cooking_time")
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -36,10 +41,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
         fields = ("recipe",)
 
     def to_representation(self, instance):
-        recipe_data = instance.recipe
+        recipe = instance.recipe
         return {
-            "id": recipe_data.id,
-            "name": recipe_data.name,
-            "image": recipe_data.image.url,
-            "cooking_time": recipe_data.cooking_time,
+            "id": recipe.id,
+            "name": recipe.name,
+            "image": recipe.image,
+            "cooking_time": recipe.cooking_time,
         }

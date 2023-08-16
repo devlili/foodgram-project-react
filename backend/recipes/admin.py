@@ -1,6 +1,13 @@
 from django.contrib import admin
 
-from .models import Ingredient, Recipe, RecipeIngredient, Tag
+from .models import (
+    Favorite,
+    Ingredient,
+    Recipe,
+    RecipeIngredient,
+    ShoppingCart,
+    Tag,
+)
 
 
 @admin.register(Tag)
@@ -27,6 +34,19 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = [RecipeIngredientInline]
 
 
-@admin.register(RecipeIngredient)
-class RecipeIngredientAdmin(admin.ModelAdmin):
-    list_display = ("recipe", "ingredient", "amount")
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "get_recipe", "get_count")
+
+    @admin.display(description="Рецепты")
+    def get_recipe(self, obj):
+        return [f'{item["name"]} ' for item in obj.recipe.values("name")[:5]]
+
+    @admin.display(description="Кол-во в избранных")
+    def get_count(self, obj):
+        return obj.recipe.count()
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ("id", "user")

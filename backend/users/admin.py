@@ -9,10 +9,9 @@ class CustomUserAdmin(UserAdmin):
     list_display = (
         "pk",
         "username",
+        "email",
         "first_name",
         "last_name",
-        "date_joined",
-        "is_staff",
     )
     list_filter = ("username", "email")
 

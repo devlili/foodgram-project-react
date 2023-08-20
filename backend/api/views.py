@@ -14,8 +14,8 @@ from .permissions import IsOwnerOrAdmin
 from .serializers import (
     IngredientSerializer,
     RecipeCreateUpdateSerializer,
-    RecipeReadSerializer,
-    ShortRecipeSerializer,
+    RecipeListSerializer,
+    RecipeMinified,
     TagSerializer,
 )
 from recipes.models import (
@@ -55,14 +55,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in SAFE_METHODS:
-            return RecipeReadSerializer
+            return RecipeListSerializer
         return RecipeCreateUpdateSerializer
 
     def get_permissions(self):
         if self.action in ("update", "destroy"):
-            return (IsOwnerOrAdmin,)
-        if self.action in ("create"):
-            return (IsAuthenticated,)
+            return (IsOwnerOrAdmin(),)
+        if self.action in ("create",):
+            return (IsAuthenticated(),)
         return super().get_permissions()
 
     def add_to(self, model, user, pk):
@@ -73,7 +73,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         recipe = get_object_or_404(Recipe, id=pk)
         model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(recipe)
+        serializer = RecipeMinified(recipe)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_from(self, model, user, pk):
@@ -106,24 +106,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
         if not user.shopping_cart.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
+        shopping_cart = ShoppingCart.objects.filter(user=user)
+        recipes = [item.recipe.id for item in shopping_cart]
         ingredients = (
-            RecipeIngredient.objects.filter(
-                recipe__shopping_cart__user=request.user
-            )
-            .values("ingredient__name", "ingredient__measurement_unit")
+            RecipeIngredient.objects.filter(recipe__in=recipes)
+            .values("ingredient")
             .annotate(amount=Sum("amount"))
         )
 
         shopping_cart = f"Список покупок {user.get_full_name()}\n\n"
-        for item in ingredients:
-            ingredient = Ingredient.objects.get(pk=item["ingredient"])
-            amount = item["amount"]
+        for ingredient in ingredients:
+            amount = ingredient.get("amount")
+            ingredient = get_object_or_404(Ingredient, pk=ingredient.get("id"))
             shopping_cart += (
                 f"{ingredient.name}, {amount} {ingredient.measurement_unit}\n"
             )
         shopping_cart += f"\n\nFoodgram ({datetime.today():%Y-%m-%d})"
 
-        filename = f"{user.username}_shopping_list.txt"
+        filename = f"{user.username}_shopping_list.pdf"
         response = HttpResponse(shopping_cart, content_type="text/plain")
         response["Content-Disposition"] = f"attachment; filename={filename}"
 

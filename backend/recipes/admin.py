@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import display
 
 from .models import (
     Favorite,
@@ -29,22 +30,17 @@ class RecipeIngredientInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    list_display = ("pk", "name", "author")
+    list_display = ("pk", "name", "author", 'in_favorites')
     list_filter = ("author", "name", "tags")
     inlines = [RecipeIngredientInline]
 
+    @display(description='Количество в избранных')
+    def in_favorites(self, obj):
+        return obj.favorites.count()
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "get_recipe", "get_count")
-
-    @admin.display(description="Рецепты")
-    def get_recipe(self, obj):
-        return [f'{item["name"]} ' for item in obj.recipe.values("name")[:5]]
-
-    @admin.display(description="Кол-во в избранных")
-    def get_count(self, obj):
-        return obj.recipe.count()
+    list_display = ("id", "user", "recipe")
 
 
 @admin.register(ShoppingCart)

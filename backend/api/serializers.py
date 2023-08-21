@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from users.serializers import CustomUserSerializer
 
 from recipes.models import (
@@ -14,18 +15,24 @@ from recipes.models import (
 
 
 class IngredientSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов."""
+
     class Meta:
         model = Ingredient
         fields = "__all__"
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для тегов."""
+
     class Meta:
         model = Tag
         fields = "__all__"
 
 
 class RecipeIngredientsSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов рецепта."""
+
     id = serializers.ReadOnlyField(source="ingredient.id")
     name = serializers.ReadOnlyField(source="ingredient.name")
     measurement_unit = serializers.ReadOnlyField(
@@ -38,6 +45,8 @@ class RecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class CreateRecipeIngredientsSerializer(serializers.ModelSerializer):
+    """Сериализатор для ингредиентов создания рецепта."""
+
     id = serializers.IntegerField()
     amount = serializers.IntegerField()
 
@@ -47,6 +56,8 @@ class CreateRecipeIngredientsSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания и обновления рецепта."""
+
     image = Base64ImageField()
     tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True
@@ -57,6 +68,22 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         exclude = ("pub_date",)
+
+    def validate_tags(self, value):
+        if not value:
+            raise ValidationError("Добавьте как минимум 1 тег.")
+        return value
+
+    def validate_ingredients(self, value):
+        if not value:
+            raise ValidationError("Добавьте как минимум 1 ингредиент.")
+
+        ingredients = [item["id"] for item in value]
+        for ingredient in ingredients:
+            if ingredients.count(ingredient) > 1:
+                raise ValidationError("Ингридиенты не должны повторяться!")
+
+        return value
 
     def add_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
@@ -97,6 +124,8 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class RecipeListSerializer(serializers.ModelSerializer):
+    """Сериализатор для получения рецептов."""
+
     author = CustomUserSerializer(read_only=True)
     tags = TagSerializer(many=True)
     ingredients = RecipeIngredientsSerializer(
@@ -134,6 +163,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
 
 class RecipeMinified(serializers.ModelSerializer):
+    """Упрощенный сериализатор для списка рецептов."""
+
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")

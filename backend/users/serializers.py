@@ -3,11 +3,16 @@ from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 
-from .models import Subscription, User
+from .models import User
 from recipes.models import Recipe
 
 
 class CustomUserSerializer(UserSerializer):
+    """
+    Переопределенный сериализатор пользователей с дополнительным полем
+    подписки.
+    """
+
     is_subscribed = SerializerMethodField(read_only=True)
 
     class Meta:
@@ -29,6 +34,10 @@ class CustomUserSerializer(UserSerializer):
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
+    """
+    Переопределенный сериализатор для создания новых пользователей.
+    """
+
     class Meta:
         model = User
         fields = (
@@ -41,6 +50,11 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class SubscriptionSerializer(CustomUserSerializer):
+    """
+    Сериализатор для пользователей с дополнительной информацией о подписках
+    и рецептах.
+    """
+
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 

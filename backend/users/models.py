@@ -12,7 +12,6 @@ class User(AbstractUser):
     - email (str): Email пользователя (уникальное поле).
     - first_name (str): Имя пользователя.
     - last_name (str): Фамилия пользователя.
-
     """
 
     email = models.EmailField("Почта", unique=True, max_length=254)
@@ -20,7 +19,7 @@ class User(AbstractUser):
     last_name = models.CharField("Фамилия", max_length=150)
 
     class Meta:
-        ordering = ['id']
+        ordering = ["id"]
         verbose_name = "Пользователь"
         verbose_name_plural = "Пользователи"
 
@@ -29,6 +28,14 @@ class User(AbstractUser):
 
 
 class Subscription(models.Model):
+    """
+    Модель для хранения информации о подписках.
+
+    Поля:
+    - user (User): Подписчик (связь с моделью User).
+    - author (User): Автор (связь с моделью User).
+    """
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

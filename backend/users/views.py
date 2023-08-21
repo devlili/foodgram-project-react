@@ -10,6 +10,8 @@ from .serializers import CustomUserSerializer, SubscriptionSerializer
 
 
 class CustomUserViewSet(UserViewSet):
+    """ViewSet для пользователей."""
+
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
 
@@ -19,6 +21,8 @@ class CustomUserViewSet(UserViewSet):
         permission_classes=[IsAuthenticated],
     )
     def subscribe(self, request, **kwargs):
+        """Подписывает или отписывает на другого пользователя."""
+
         user = request.user
         author = get_object_or_404(User, id=self.kwargs.get("id"))
 
@@ -39,6 +43,8 @@ class CustomUserViewSet(UserViewSet):
 
     @action(detail=False, permission_classes=[IsAuthenticated])
     def subscriptions(self, request):
+        """Возвращает список подписок пользователя."""
+
         queryset = User.objects.filter(subscribers__user=request.user)
         pages = self.paginate_queryset(queryset)
         serializer = SubscriptionSerializer(

@@ -8,10 +8,9 @@ class Tag(models.Model):
     Модель для хранения информации о тегах.
 
     Поля:
-    - name: название тега.
-    - color: цветовой HEX-код. Например, "#49B64E".
-    - slug: уникальное сокращение для URL.
-
+    - name (str): Название тега.
+    - color (str): Цветовой HEX-код. Например, "#49B64E".
+    - slug (str): Уникальное сокращение для URL.
     """
 
     name = models.CharField(
@@ -40,9 +39,8 @@ class Ingredient(models.Model):
     Модель для хранения информации об ингредиентах.
 
     Поля:
-    - name: название ингредиента.
-    - measurement_unit: единицы измерения.
-
+    - name (str): Название ингредиента.
+    - measurement_unit (str): Единицы измерения.
     """
 
     name = models.CharField(
@@ -69,15 +67,15 @@ class Recipe(models.Model):
     Модель для хранения информации о рецептах.
 
     Поля:
-    - author: автор публикации (связь с моделью User).
-    - name: название рецепта.
-    - image: изображение рецепта.
-    - text: текстовое описание.
-    - ingredients: список ингредиентов (связь с моделью Ingredient/
-      через промежуточную модель RecipeIngredient).
-    - tags: теги рецепта (связь с моделью Tag).
-    - cooking_time: время приготовления в минутах.
-
+    - author (User): Автор публикации (связь с моделью User).
+    - name (str): Название рецепта.
+    - image (ImageField): Изображение рецепта.
+    - text (str): Текстовое описание.
+    - ingredients (ManyToManyField): Список ингредиентов (связь с моделью
+      Ingredient через промежуточную модель RecipeIngredient).
+    - tags (ManyToManyField): Теги рецепта (связь с моделью Tag).
+    - cooking_time (int): Время приготовления в минутах.
+    - pub_date (datetime): Дата публикации.
     """
 
     author = models.ForeignKey(
@@ -107,11 +105,10 @@ class Recipe(models.Model):
         verbose_name="Теги",
     )
     cooking_time = models.PositiveIntegerField(
-        "Время приготовления (в минутах)"
+        "Время приготовления (в минутах)",
+        validators=[MinValueValidator(1, message="Минимальное время 1!")],
     )
-    pub_date = models.DateTimeField(
-        "Дата публикации", auto_now_add=True
-    )
+    pub_date = models.DateTimeField("Дата публикации", auto_now_add=True)
 
     class Meta:
         verbose_name = "Рецепт"
@@ -127,10 +124,9 @@ class RecipeIngredient(models.Model):
     Модель для хранения информации об ингредиентах в рецептах.
 
     Поля:
-    - recipe: рецепт (связь с моделью Recipe).
-    - ingredient: ингредиент (связь с моделью Ingredient).
-    - amount: количество ингредиента.
-
+    - recipe (Recipe): Рецепт (связь с моделью Recipe).
+    - ingredient (Ingredient): Ингредиент (связь с моделью Ingredient).
+    - amount (int): Количество ингредиента.
     """
 
     recipe = models.ForeignKey(
@@ -160,6 +156,14 @@ class RecipeIngredient(models.Model):
 
 
 class Favorite(models.Model):
+    """
+    Модель для хранения информации об избранных рецептах.
+
+    Поля:
+    - recipe (Recipe): Рецепт (связь с моделью Recipe).
+    - user (User): Пользователь (связь с моделью User).
+    """
+
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -187,6 +191,14 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
+    """
+    Модель для хранения информации о списках покупок.
+
+    Поля:
+    - user (User): Пользователь (связь с моделью User).
+    - recipe (Recipe): Рецепт (связь с моделью Recipe).
+    """
+
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

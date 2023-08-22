@@ -14,13 +14,13 @@ services:
       - pg_data:/var/lib/postgresql/data
   
   backend:
-    build: ./backend/
+    build: ../backend/
     env_file: ./.env
     depends_on:
       - db
     volumes:
-      - static:/app/static
-      - media:/app/media
+      - static:/static
+      - media:/media
   
   frontend:
     build:
@@ -28,8 +28,9 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - backend
+    command: cp -r /app/build/. /static/
     volumes:
-      - ../frontend/:/app/result_build/
+      - static:/static
 
   nginx:
     image: nginx:latest
@@ -42,5 +43,5 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
-      - static:/app/static
-      - media:/app/media
+      - static:/static
+      - media:/media

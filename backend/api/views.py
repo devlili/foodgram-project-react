@@ -9,7 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 
-from .filters import RecipeFilter
+from .filters import IngredientFilter, RecipeFilter
+from .pagination import CustomPagination
 from .permissions import IsOwnerOrAdmin
 from .serializers import (
     IngredientSerializer,
@@ -33,6 +34,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    # filter_backends = (DjangoFilterBackend,)
+    # filterset_class = IngredientFilter
     filter_backends = (filters.SearchFilter,)
     search_fields = ("^name",)
 
@@ -48,6 +51,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     """ViewSet для создания, чтения, обновления и удаления рецептов."""
 
     queryset = Recipe.objects.all()
+    pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 

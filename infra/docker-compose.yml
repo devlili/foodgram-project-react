@@ -19,8 +19,9 @@ services:
     depends_on:
       - db
     volumes:
+      - ../backend:/app
       - static:/static
-      - media:/media
+      - media:/app/media
   
   frontend:
     build:
@@ -44,4 +45,4 @@ services:
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static:/static
-      - media:/media
+      - media:/app/media

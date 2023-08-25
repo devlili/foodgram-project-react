@@ -4,7 +4,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
@@ -34,10 +34,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    # filter_backends = (DjangoFilterBackend,)
-    # filterset_class = IngredientFilter
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ("^name",)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientFilter
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -123,6 +121,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 recipe__in_shopping_cart__user=user
             )
             .values("ingredient__name", "ingredient__measurement_unit")
+            .order_by("ingredient__name")
             .annotate(amount=Sum("amount"))
         )
 
@@ -135,7 +134,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
         shopping_cart += f"\n\nFoodgram {datetime.today():%d-%m-%Y}"
 
-        filename = f"{user.username}_shopping_cart.pdf"
+        filename = f"{user}_shopping_cart.txt"
         response = HttpResponse(shopping_cart, content_type="text/plain")
         response["Content-Disposition"] = f"attachment; filename={filename}"
 

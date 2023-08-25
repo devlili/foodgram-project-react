@@ -1,9 +1,9 @@
-from django.shortcuts import get_object_or_404
+from django.db import transaction
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from users.serializers import CustomUserSerializer
 
+from users.serializers import CustomUserSerializer
 from recipes.models import (
     Favorite,
     Ingredient,
@@ -79,24 +79,26 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
             raise ValidationError("Добавьте как минимум 1 ингредиент.")
 
         ingredients = [item["id"] for item in value]
-        for ingredient in ingredients:
-            if ingredients.count(ingredient) > 1:
-                raise ValidationError("Ингридиенты не должны повторяться!")
+        if len(ingredients) != len(set(ingredients)):
+            raise serializers.ValidationError(
+                "Ингридиенты не должны повторяться!"
+            )
 
         return value
 
     def add_ingredients(self, ingredients, recipe):
-        for ingredient in ingredients:
-            amount = ingredient.get("amount")
-            ingredient_id = get_object_or_404(
-                Ingredient, pk=ingredient.get("id")
-            )
-            RecipeIngredient.objects.create(
-                recipe=recipe,
-                ingredient=ingredient_id,
-                amount=amount,
-            )
+        RecipeIngredient.objects.bulk_create(
+            [
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient_id=ingredient.get("id"),
+                    amount=ingredient.get("amount"),
+                )
+                for ingredient in ingredients
+            ]
+        )
 
+    @transaction.atomic
     def create(self, validated_data):
         author = self.context.get("request").user
         ingredients = validated_data.pop("ingredients")
@@ -108,6 +110,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         self.add_ingredients(ingredients, recipe)
         return recipe
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         if "ingredients" in validated_data:
             ingredients = validated_data.pop("ingredients")
@@ -127,6 +130,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     """Сериализатор для получения рецептов."""
 
     author = CustomUserSerializer(read_only=True)
+    image = serializers.ReadOnlyField(source="image.url")
     tags = TagSerializer(many=True)
     ingredients = RecipeIngredientsSerializer(
         many=True, required=True, source="recipe_ingredients"

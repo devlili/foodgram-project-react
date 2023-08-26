@@ -16,7 +16,6 @@ services:
   backend:
     image: devlil/foodgram_backend
     env_file: ./.env
-    restart: always
     depends_on:
       - db
     volumes:
@@ -34,7 +33,6 @@ services:
   nginx:
     image: nginx:latest
     env_file: ./.env
-    restart: always
     depends_on:
       - frontend
     ports:

@@ -14,7 +14,7 @@ services:
       - pg_data:/var/lib/postgresql/data
   
   backend:
-    build: ../backend/
+    image: devlil/foodgram_backend
     env_file: ./.env
     restart: always
     depends_on:
@@ -25,9 +25,7 @@ services:
       - media:/app/media
   
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: devlil/foodgram_frontend
     depends_on:
       - backend
     volumes:
@@ -36,6 +34,7 @@ services:
   nginx:
     image: nginx:latest
     env_file: ./.env
+    restart: always
     depends_on:
       - frontend
     ports:

@@ -14,17 +14,16 @@ services:
       - pg_data:/var/lib/postgresql/data
   
   backend:
-    image: devlil/foodgram_backend
+    image: devlil/foodgram_backend:latest
     env_file: ./.env
     depends_on:
       - db
     volumes:
-      - ../backend:/app
       - static:/static
       - media:/app/media
   
   frontend:
-    image: devlil/foodgram_frontend
+    image: devlil/foodgram_frontend:latest
     depends_on:
       - backend
     volumes:
@@ -36,7 +35,7 @@ services:
     depends_on:
       - frontend
     ports:
-      - "80:80"
+      - "8000:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
